@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       username:
-        description: "SMTYON"
+        description: "LeetCode username to test (profile must be public)"
         required: true
         type: string
 
