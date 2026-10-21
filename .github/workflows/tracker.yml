@@ -52,7 +52,13 @@ jobs:
         run: |
           git config user.name "tracker-bot"
           git config user.email "tracker-bot@users.noreply.github.com"
-          git add data output
+          # Only the "site" folder is ever published to the web. It gets the public
+          # standings file and nothing else: emails and problem lists never go in here.
+          if [ -f output/public/standings.json ]; then
+            mkdir -p site
+            cp output/public/standings.json site/standings.json
+          fi
+          git add data output site
           if git diff --cached --quiet; then
             echo "Nothing changed."
           else
