@@ -1,0 +1,7 @@
+/*
+  X-Robots-Tag: noindex
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+
+/standings.json
+  Cache-Control: public, max-age=60

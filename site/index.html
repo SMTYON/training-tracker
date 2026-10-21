@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Training Event Standings</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --surface: #ffffff; --text: #16191d; --muted: #6a7380;
+    --border: #e1e5ea; --accent: #2f6fed; --good: #1a8f4c; --good-bg: #e3f5ea;
+    --warn: #b36b00; --warn-bg: #fff1d9; --bad: #c0362c; --bad-bg: #fde7e5;
+    --neutral-bg: #eceff3; --me-bg: #e8f0ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1216; --surface: #181c22; --text: #e8ebef; --muted: #98a2b0;
+      --border: #2a313a; --accent: #6b9bff; --good: #4cc27e; --good-bg: #153424;
+      --warn: #f0b04a; --warn-bg: #3a2c12; --bad: #ff7a70; --bad-bg: #3d1b18;
+      --neutral-bg: #232932; --me-bg: #1c2a47;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.45;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px 48px; }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+  h1 { font-size: 1.5rem; margin: 0; }
+  .sub { color: var(--muted); font-size: .85rem; }
+  button, input {
+    font: inherit; color: var(--text); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px;
+  }
+  button { cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .me-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .me-row input { flex: 1 1 220px; min-width: 0; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .tabs button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: .75rem; font-weight: 600; background: var(--neutral-bg); color: var(--muted); white-space: nowrap; }
+  .pill.good { background: var(--good-bg); color: var(--good); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn); }
+  .pill.bad { background: var(--bad-bg); color: var(--bad); }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--muted); font-size: .88rem; margin-bottom: 4px; }
+  .meta b { color: var(--text); font-weight: 600; }
+  .table-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; }
+  td.num, th.num { text-align: center; }
+  tr.me td { background: var(--me-bg); }
+  td.solved { background: var(--good-bg); color: var(--good); font-weight: 600; text-align: center; font-size: .8rem; }
+  td.empty { color: var(--muted); text-align: center; }
+  .rank { font-weight: 700; }
+  .bar { height: 8px; background: var(--neutral-bg); border-radius: 99px; overflow: hidden; margin: 6px 0 2px; }
+  .bar > div { height: 100%; background: var(--accent); border-radius: 99px; }
+  .bar > div.done { background: var(--good); }
+  .week-line { margin: 12px 0 0; }
+  .week-line .top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .notice { color: var(--muted); padding: 20px 4px; text-align: center; }
+  .error { background: var(--bad-bg); color: var(--bad); padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; }
+  .legend { color: var(--muted); font-size: .8rem; margin-top: 10px; }
+  .late { color: var(--muted); font-size: .75rem; font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1 id="title">Training Event</h1>
+      <div class="sub" id="updated">Loading…</div>
+    </div>
+    <button id="refresh" type="button">Refresh</button>
+  </header>
+
+  <div id="error" class="error" hidden></div>
+
+  <section class="card" aria-labelledby="me-label">
+    <div class="me-row">
+      <label id="me-label" for="me-input"><b>My progress</b></label>
+      <input id="me-input" type="text" placeholder="Your LeetCode username" autocomplete="off" spellcheck="false">
+      <button id="me-clear" type="button">Clear</button>
+    </div>
+    <div id="me-result"></div>
+  </section>
+
+  <section class="card">
+    <div class="tabs" id="tabs" role="group" aria-label="Weeks"></div>
+    <div class="meta" id="week-meta"></div>
+    <div class="table-scroll" id="table-area"></div>
+    <div class="legend" id="legend"></div>
+  </section>
+</div>
+
+<script>
+"use strict";
+
+// ---- Easy settings ---------------------------------------------------------
+const EVENT_NAME = "Training Event";      // change this to your event's name
+const SHOW_STATUS_IN_TABLE = true;        // false = show status only in "My progress"
+const DATA_URL = "standings.json";
+const REFRESH_EVERY_MS = 5 * 60 * 1000;   // the page re-reads the data every 5 minutes
+// ----------------------------------------------------------------------------
+
+const STATUS_LABEL = {
+  on_track: ["On track", "good"], behind: ["Catching up", "warn"],
+  flagged: ["Under review", "bad"], eliminated: ["Eliminated", "bad"]
+};
+const HISTORY_LABEL = {
+  pass: ["Passed", "good"], late_pass: ["Passed (late)", "good"],
+  behind: ["Catching up", "warn"], failed: ["Not passed", "bad"],
+  in_progress: ["In progress", ""], locked: ["Locked", ""],
+  excused: ["Excused", ""], upcoming: ["Upcoming", ""]
+};
+
+let data = null;
+let selectedWeekId = null;
+let myName = "";
+
+const $ = (id) => document.getElementById(id);
+
+function h(tag, attrs, ...children) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === false || v == null) continue;
+    if (k === "class") el.className = v;
+    else if (k === "text") el.textContent = v;
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of children.flat()) {
+    if (c == null) continue;
+    el.append(c.nodeType ? c : document.createTextNode(String(c)));
+  }
+  return el;
+}
+
+function pill(text, kind) { return h("span", { class: "pill " + (kind || "") }, text); }
+
+function fmtMinutes(min) {
+  if (min == null) return "–";
+  const d = Math.floor(min / 1440), hr = Math.floor((min % 1440) / 60), m = min % 60;
+  if (d > 0) return d + "d " + hr + "h";
+  if (hr > 0) return hr + "h " + m + "m";
+  return m + "m";
+}
+
+function fmtDate(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  return d.toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+function fmtCountdown(ms) {
+  if (ms <= 0) return "0m";
+  const total = Math.floor(ms / 60000);
+  const d = Math.floor(total / 1440), hr = Math.floor((total % 1440) / 60), m = total % 60;
+  if (d > 0) return d + "d " + hr + "h " + m + "m";
+  if (hr > 0) return hr + "h " + m + "m";
+  return m + "m";
+}
+
+function showError(msg) {
+  const box = $("error");
+  box.hidden = !msg;
+  box.textContent = msg || "";
+}
+
+function pickDefaultWeek(weeks) {
+  const active = weeks.find((w) => w.state === "active");
+  if (active) return active.id;
+  const ended = weeks.filter((w) => w.state === "ended");
+  if (ended.length) return ended[ended.length - 1].id;
+  return weeks.length ? weeks[0].id : null;
+}
+
+function findTrainee(name) {
+  if (!data || !name) return null;
+  const key = Object.keys(data.trainees).find((k) => k.toLowerCase() === name.trim().toLowerCase());
+  return key ? { username: key, info: data.trainees[key] } : null;
+}
+
+function weekCountdownText(w) {
+  const now = Date.now();
+  const start = new Date(w.start).getTime(), end = new Date(w.end).getTime();
+  const catchup = new Date(w.catchup_end).getTime();
+  if (now < start) return "Starts in " + fmtCountdown(start - now);
+  if (now < end) return "Ends in " + fmtCountdown(end - now);
+  if (now < catchup) return "Catch-up closes in " + fmtCountdown(catchup - now);
+  return "Closed";
+}
+
+function renderTabs() {
+  const tabs = $("tabs");
+  tabs.replaceChildren();
+  for (const w of data.weeks) {
+    const b = h("button", { type: "button", "aria-pressed": String(w.id === selectedWeekId) }, w.name.split(":")[0]);
+    b.title = w.name;
+    b.addEventListener("click", () => { selectedWeekId = w.id; render(); });
+    tabs.append(b);
+  }
+}
+
+function renderWeek() {
+  const w = data.weeks.find((x) => x.id === selectedWeekId);
+  const meta = $("week-meta"), area = $("table-area"), legend = $("legend");
+  meta.replaceChildren(); area.replaceChildren(); legend.textContent = "";
+  if (!w) { area.append(h("div", { class: "notice" }, "No weeks have been set up yet.")); return; }
+
+  const stateLabel = { upcoming: ["Upcoming", ""], active: ["Active", "good"], ended: ["Catch-up / closed", "warn"] }[w.state];
+  meta.append(
+    h("span", {}, pill(stateLabel[0], stateLabel[1])),
+    h("span", {}, h("b", {}, w.name)),
+    h("span", { id: "countdown" }, weekCountdownText(w)),
+    h("span", {}, "Opens: ", h("b", {}, fmtDate(w.start))),
+    h("span", {}, "Ends: ", h("b", {}, fmtDate(w.end))),
+    h("span", {}, "Catch-up until: ", h("b", {}, fmtDate(w.catchup_end))),
+    h("span", {}, "To pass: ", h("b", {}, w.required + " of " + w.problem_count + " problems"))
+  );
+
+  if (!w.standings) {
+    area.append(h("div", { class: "notice" }, "This week hasn't opened yet. Standings appear when it starts."));
+    return;
+  }
+  if (!w.standings.length) {
+    area.append(h("div", { class: "notice" }, "No trainees yet."));
+    return;
+  }
+
+  const head = h("tr", {},
+    h("th", { class: "num" }, "#"), h("th", {}, "User"),
+    h("th", { class: "num" }, "Solved"), h("th", { class: "num" }, "Time"),
+    Array.from({ length: w.problem_count }, (_, i) => h("th", { class: "num" }, "P" + (i + 1))),
+    h("th", {}, "Result"),
+    SHOW_STATUS_IN_TABLE ? h("th", {}, "Status") : null
+  );
+
+  const me = findTrainee(myName);
+  const body = w.standings.map((r) => {
+    const late = r.solved_with_catchup - r.solved;
+    const result = r.on_time ? pill("Passed", "good") : r.passed ? pill("Passed (late)", "good") : pill("Not yet", "");
+    const st = data.trainees[r.username];
+    const stLabel = st ? STATUS_LABEL[st.status] : null;
+    return h("tr", { class: me && me.username === r.username ? "me" : "" },
+      h("td", { class: "num rank" }, r.rank),
+      h("td", {}, r.username),
+      h("td", { class: "num" }, r.solved + "/" + w.problem_count,
+        late > 0 ? h("span", { class: "late" }, " +" + late + " late") : null),
+      h("td", { class: "num" }, r.solved ? fmtMinutes(r.time_minutes) : "–"),
+      r.per_problem.map((t) => t == null ? h("td", { class: "empty" }, "·") : h("td", { class: "solved" }, fmtMinutes(t))),
+      h("td", {}, result),
+      SHOW_STATUS_IN_TABLE ? h("td", {}, stLabel ? pill(stLabel[0], stLabel[1]) : "") : null
+    );
+  });
+
+  area.append(h("table", {}, h("thead", {}, head), h("tbody", {}, body)));
+  legend.textContent = "Ranking: more problems solved first, then lower total time. Each solve counts the time since the week opened. " +
+    "Solves after the week ends count toward passing but not toward the ranking. The page refreshes every 5 minutes.";
+}
+
+function renderMe() {
+  const out = $("me-result");
+  out.replaceChildren();
+  if (!myName.trim()) return;
+  const t = findTrainee(myName);
+  if (!t) {
+    out.append(h("div", { class: "notice" }, "No trainee found with that username. Check the spelling."));
+    return;
+  }
+  const st = STATUS_LABEL[t.info.status] || ["", ""];
+  out.append(h("div", { class: "week-line" },
+    h("div", { class: "top" }, h("b", {}, t.username), pill(st[0], st[1]))));
+
+  data.weeks.forEach((w, i) => {
+    if (w.state === "upcoming" || !w.standings) return;
+    const row = w.standings.find((r) => r.username === t.username);
+    if (!row) return;
+    const hist = HISTORY_LABEL[t.info.history[i]] || ["", ""];
+    const pct = Math.min(100, Math.round((row.solved_with_catchup / w.required) * 100));
+    out.append(h("div", { class: "week-line" },
+      h("div", { class: "top" },
+        h("span", {}, h("b", {}, w.name.split(":")[0]), " · " + row.solved_with_catchup + " solved, " + w.required + " needed to pass"),
+        pill(hist[0], hist[1])),
+      h("div", { class: "bar" }, h("div", { class: pct >= 100 ? "done" : "", style: "width:" + pct + "%" }))));
+  });
+}
+
+function render() {
+  if (!data) return;
+  $("title").textContent = EVENT_NAME;
+  document.title = EVENT_NAME + " Standings";
+  $("updated").textContent = "Last updated: " + fmtDate(data.generated_at);
+  renderTabs();
+  renderWeek();
+  renderMe();
+}
+
+async function load() {
+  try {
+    const res = await fetch(DATA_URL + "?t=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    data = await res.json();
+    showError("");
+    if (!data.weeks.some((w) => w.id === selectedWeekId)) selectedWeekId = pickDefaultWeek(data.weeks);
+    render();
+  } catch (e) {
+    showError("Could not load the standings (" + e.message + "). " + (data ? "Showing the last data we have." : "Try refreshing in a minute."));
+    if (!data) $("updated").textContent = "";
+  }
+}
+
+$("refresh").addEventListener("click", load);
+$("me-input").addEventListener("input", (e) => {
+  myName = e.target.value;
+  try { localStorage.setItem("myLeetcodeName", myName); } catch (_) {}
+  renderMe();
+  if (data) renderWeek();
+});
+$("me-clear").addEventListener("click", () => {
+  $("me-input").value = ""; myName = "";
+  try { localStorage.removeItem("myLeetcodeName"); } catch (_) {}
+  renderMe();
+  if (data) renderWeek();
+});
+
+try { myName = localStorage.getItem("myLeetcodeName") || ""; } catch (_) { myName = ""; }
+$("me-input").value = myName;
+
+setInterval(() => { const c = $("countdown"); if (c && data) { const w = data.weeks.find((x) => x.id === selectedWeekId); if (w) c.textContent = weekCountdownText(w); } }, 30000);
+setInterval(load, REFRESH_EVERY_MS);
+load();
+</script>
+</body>
+</html>
