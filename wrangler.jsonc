@@ -1,0 +1,9 @@
+{
+  // Tells Cloudflare to publish ONLY the "site" folder (the standings page).
+  // Everything else in this repository (emails, problem lists, config) stays private.
+  "name": "training-tracker",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./site"
+  }
+}
