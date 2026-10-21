@@ -1,0 +1,32 @@
+name: Scale test
+
+# Manual only: run it from the Actions tab.
+on:
+  workflow_dispatch:
+    inputs:
+      total_requests:
+        description: "How many requests to send in total"
+        required: true
+        default: "100"
+        type: string
+      delay_seconds:
+        description: "Seconds to wait between requests"
+        required: true
+        default: "1.0"
+        type: string
+
+jobs:
+  scale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run scale test
+        run: python scale_test.py "${{ inputs.total_requests }}" "${{ inputs.delay_seconds }}"
