@@ -1,0 +1,60 @@
+name: Tracker
+
+# Runs automatically on a schedule, and can also be started by hand from the Actions tab.
+on:
+  schedule:
+    # Every 2 hours (at minute 11). Times are UTC. Change "*/2" to "*/3" to run less often
+    # if you are running out of free Actions minutes.
+    - cron: "11 */2 * * *"
+  workflow_dispatch:
+    inputs:
+      force_fetch:
+        description: "Fetch from LeetCode even if no week is active"
+        required: false
+        default: false
+        type: boolean
+
+# Lets the workflow save results (history + outputs) back into this repository.
+permissions:
+  contents: write
+
+# Never run two trackers at the same time.
+concurrency:
+  group: tracker
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Quick safety check: if the scoring logic is broken, stop before touching any data.
+      - name: Run self-tests
+        run: python test_engine.py
+
+      - name: Fetch from LeetCode and compute standings
+        run: python run.py ${{ inputs.force_fetch && '--force-fetch' || '' }}
+
+      # always(): even if too many fetches failed (which makes the step above fail and
+      # sends you an alert email), still save whatever was collected.
+      - name: Save results back to the repository
+        if: always()
+        run: |
+          git config user.name "tracker-bot"
+          git config user.email "tracker-bot@users.noreply.github.com"
+          git add data output
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
+          else
+            git commit -m "Tracker update $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git pull --rebase --autostash
+            git push
+          fi
