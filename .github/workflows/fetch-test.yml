@@ -1,0 +1,25 @@
+name: Fetch test
+
+# Manual only: run it from the Actions tab, type a LeetCode username, press Run.
+on:
+  workflow_dispatch:
+    inputs:
+      username:
+        description: "SMTYON"
+        required: true
+        type: string
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch recent accepted submissions
+        run: python fetch_test.py "${{ inputs.username }}" 20
