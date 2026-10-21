@@ -1,6 +1,94 @@
 {
-  "generated_at": "2026-10-21T01:28:53.651702+00:00",
+  "generated_at": "2026-10-21T01:35:09.985654+00:00",
   "weeks": [
+    {
+      "id": "week0",
+      "name": "Week 0 (test)",
+      "state": "active",
+      "start": "2026-10-11T00:00:00+03:00",
+      "end": "2026-10-28T00:00:00+03:00",
+      "catchup_end": "2026-10-30T16:00:00+00:00",
+      "threshold": 0.5,
+      "required": 2,
+      "problem_count": 4,
+      "standings": [
+        {
+          "rank": 1,
+          "username": "SMTYON",
+          "solved": 2,
+          "time_minutes": 2506,
+          "on_time": true,
+          "passed": true,
+          "solved_with_catchup": 2,
+          "per_problem": [
+            1258,
+            1248,
+            null,
+            null
+          ]
+        },
+        {
+          "rank": 2,
+          "username": "00kCwRLD9a",
+          "solved": 0,
+          "time_minutes": 0,
+          "on_time": false,
+          "passed": false,
+          "solved_with_catchup": 0,
+          "per_problem": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "rank": 2,
+          "username": "alkhlashfyalkrash",
+          "solved": 0,
+          "time_minutes": 0,
+          "on_time": false,
+          "passed": false,
+          "solved_with_catchup": 0,
+          "per_problem": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "rank": 2,
+          "username": "mochi-002",
+          "solved": 0,
+          "time_minutes": 0,
+          "on_time": false,
+          "passed": false,
+          "solved_with_catchup": 0,
+          "per_problem": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "rank": 2,
+          "username": "mohammed282",
+          "solved": 0,
+          "time_minutes": 0,
+          "on_time": false,
+          "passed": false,
+          "solved_with_catchup": 0,
+          "per_problem": [
+            null,
+            null,
+            null,
+            null
+          ]
+        }
+      ]
+    },
     {
       "id": "week1",
       "name": "Week 1: STLs, Custom Sort, Lambda",
@@ -25,9 +113,18 @@
     }
   ],
   "trainees": {
+    "SMTYON": {
+      "status": "on_track",
+      "history": [
+        "in_progress",
+        "upcoming",
+        "upcoming"
+      ]
+    },
     "00kCwRLD9a": {
       "status": "on_track",
       "history": [
+        "in_progress",
         "upcoming",
         "upcoming"
       ]
@@ -35,6 +132,7 @@
     "alkhlashfyalkrash": {
       "status": "on_track",
       "history": [
+        "in_progress",
         "upcoming",
         "upcoming"
       ]
@@ -42,6 +140,7 @@
     "mochi-002": {
       "status": "on_track",
       "history": [
+        "in_progress",
         "upcoming",
         "upcoming"
       ]
@@ -49,13 +148,7 @@
     "mohammed282": {
       "status": "on_track",
       "history": [
-        "upcoming",
-        "upcoming"
-      ]
-    },
-    "SMTYON": {
-      "status": "on_track",
-      "history": [
+        "in_progress",
         "upcoming",
         "upcoming"
       ]
