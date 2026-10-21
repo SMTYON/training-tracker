@@ -1,5 +1,18 @@
 [
   {
+    "id": "week0",
+    "name": "Week 0 (test)",
+    "start": "2026-10-11T00:00:00+03:00",
+    "end": "2026-10-28T00:00:00+03:00",
+    "threshold": 0.5,
+    "problems": [
+      "longest-substring-without-repeating-characters",
+      "sum-of-squares-of-special-elements",
+      "two-sum",
+      "palindrome-number"
+    ]
+  },
+  {
     "id": "week1",
     "name": "Week 1: STLs, Custom Sort, Lambda",
     "start": "2026-10-23T19:00:00+03:00",
