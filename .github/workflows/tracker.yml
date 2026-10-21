@@ -3,9 +3,11 @@ name: Tracker
 # Runs automatically on a schedule, and can also be started by hand from the Actions tab.
 on:
   schedule:
-    # Every 2 hours (at minute 11). Times are UTC. Change "*/2" to "*/3" to run less often
-    # if you are running out of free Actions minutes.
-    - cron: "11 */2 * * *"
+    # Every 4 hours (at minute 11), UTC. Free plan = 2,000 minutes/month.
+    # A full round for ~400 trainees takes about 8 minutes, so:
+    #   "*/4" ~1,450 min/month (400 trainees)   "*/3" ~1,900 (too tight at 400)
+    #   With ~200 trainees (about 4.5 min per run), "*/2" is about 1,600 min/month.
+    - cron: "11 */4 * * *"
   workflow_dispatch:
     inputs:
       force_fetch:
