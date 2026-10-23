@@ -1,6 +1,6 @@
 name,username,email,status,latest_week,groups,week_history
-Trainee-01,SMTYON,trainee01@example.com,on_track,week0,week0,in_progress;upcoming;upcoming
-Trainee-02,mohammed282,trainee02@example.com,on_track,week0,week0,in_progress;upcoming;upcoming
-Trainee-03,alkhlashfyalkrash,trainee03@example.com,on_track,week0,week0,in_progress;upcoming;upcoming
-Trainee-04,mochi-002,trainee04@example.com,on_track,week0,week0,in_progress;upcoming;upcoming
-Trainee-05,00kCwRLD9a,trainee05@example.com,on_track,week0,week0,in_progress;upcoming;upcoming
+Trainee-01,SMTYON,trainee01@example.com,on_track,week0,week0,in_progress;locked;upcoming
+Trainee-02,mohammed282,trainee02@example.com,on_track,week0,week0,in_progress;locked;upcoming
+Trainee-03,alkhlashfyalkrash,trainee03@example.com,on_track,week0,week0,in_progress;locked;upcoming
+Trainee-04,mochi-002,trainee04@example.com,on_track,week0,week0,in_progress;locked;upcoming
+Trainee-05,00kCwRLD9a,trainee05@example.com,on_track,week0,week0,in_progress;locked;upcoming
